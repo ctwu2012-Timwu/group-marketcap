@@ -194,7 +194,7 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
   <span>每個交易日 16:45 由 GitHub Actions 存檔 · 盤中即時資料經 Tailscale 由 Mac Studio 提供</span>
   <span id="bfNote"></span>
   <span style="flex:1"></span>
-  <span id="ver">v1.0.2</span>
+  <span id="ver">v1.0.3</span>
 </div></footer>
 
 <script>
@@ -246,16 +246,23 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
     ]);
     state.cfg = cfg; state.history = hist; state.latest = latest;
   }
-  async function tryLive() {
-    const base = liveUrl().replace(/\/+$/, "");
-    if (!base) { state.live = null; return false; }
+  async function tryOne(base) {
     const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), LIVE_TIMEOUT_MS);
     try {
       const d = await getJSON(base + "/api/live", { signal: ctl.signal, mode: "cors" });
       if (!d.rows || !d.rows.length) throw new Error("empty");
-      state.live = d; return true;
-    } catch (e) { state.live = null; return false; }
-    finally { clearTimeout(t); }
+      return d;
+    } finally { clearTimeout(t); }
+  }
+  async function tryLive() {
+    // 先試 Tailscale 網址；在 Mac Studio 本機上改走 127.0.0.1（macOS 無法從本機連回自己的 Tailscale 位址）
+    const cands = [liveUrl(), "http://127.0.0.1:8765"].map((s) => (s || "").replace(/\/+$/, "")).filter(Boolean);
+    if (state.liveBase) cands.unshift(state.liveBase);
+    if (!liveUrl()) { state.live = null; return false; }
+    for (const base of [...new Set(cands)]) {
+      try { state.live = await tryOne(base); state.liveBase = base; return true; } catch (e) { /* 換下一個 */ }
+    }
+    state.live = null; state.liveBase = null; return false;
   }
 
   // ---------- 畫面
