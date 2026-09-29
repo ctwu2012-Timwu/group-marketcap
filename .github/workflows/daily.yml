@@ -1,0 +1,67 @@
+# 集團市值 Dashboard v1.0.0
+# 每個交易日 16:45（台北）抓收盤市值 → commit 回 repo → 部署 GitHub Pages
+name: daily-marketcap
+
+on:
+  schedule:
+    - cron: "45 8 * * 1-5"   # UTC 08:45 = 台北 16:45，週一至週五
+  workflow_dispatch:
+    inputs:
+      backfill_days:
+        description: "回補天數（0 = 不回補）"
+        required: false
+        default: "0"
+  push:
+    branches: [main]
+    paths: ["docs/**", "src/**", "config/**", ".github/workflows/**"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: marketcap
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet yfinance
+      - name: 決定是否回補
+        id: plan
+        run: |
+          BF="${{ github.event.inputs.backfill_days || '0' }}"
+          if [ ! -f data/history.csv ]; then BF=365; fi
+          if [ "${{ github.event_name }}" = "push" ] && [ -f data/history.csv ]; then echo "run=no" >> $GITHUB_OUTPUT; else echo "run=yes" >> $GITHUB_OUTPUT; fi
+          echo "bf=$BF" >> $GITHUB_OUTPUT
+      - name: 抓取市值
+        if: steps.plan.outputs.run == 'yes'
+        run: python src/fetch_daily.py --backfill ${{ steps.plan.outputs.bf }}
+      - name: Commit 資料
+        if: steps.plan.outputs.run == 'yes'
+        run: |
+          git config user.name "marketcap-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data docs/data
+          git diff --cached --quiet || git commit -m "data: $(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M') 市值存檔"
+          git push
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: fetch
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
