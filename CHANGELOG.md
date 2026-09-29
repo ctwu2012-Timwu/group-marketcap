@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.0.3 — 2026-09-29
+- 即時模式：Tailscale 網址連不到時，自動改試本機 http://127.0.0.1:8765（在 Mac Studio 本機開網頁也能看到即時資料）
+- 已設定即時網址 https://timmac-studio.tailbb45a9.ts.net
+
 ## v1.0.2 — 2026-09-29
 - 修正：一鍵安裝在 macOS 內建 bash 3.2 + 中文環境下，變數後接全形字元會被誤判（PY?: unbound variable），所有 shell 變數改為 ${VAR} 寫法
 
