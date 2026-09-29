@@ -1,0 +1,158 @@
+{
+ "generated": "2026-09-29 21:38:52",
+ "mode": "close",
+ "units": [
+  {
+   "code": "FII",
+   "name": "工業富聯",
+   "ticker": "601138.SS",
+   "currency": "CNY",
+   "color": "#0A2463"
+  },
+  {
+   "code": "FHH",
+   "name": "鴻海精密",
+   "ticker": "2317.TW",
+   "currency": "TWD",
+   "color": "#D7000F"
+  },
+  {
+   "code": "FIT",
+   "name": "鴻騰精密",
+   "ticker": "6088.HK",
+   "currency": "HKD",
+   "color": "#0E8C8C"
+  },
+  {
+   "code": "FVT",
+   "name": "鴻華先進",
+   "ticker": "2258.TW",
+   "currency": "TWD",
+   "color": "#E08A00"
+  },
+  {
+   "code": "FIH",
+   "name": "富智康",
+   "ticker": "2038.HK",
+   "currency": "HKD",
+   "color": "#6B5BD2"
+  }
+ ],
+ "fx": {
+  "HKD": {
+   "buy": null,
+   "sell": null,
+   "mid": 4.0618
+  },
+  "CNY": {
+   "buy": null,
+   "sell": null,
+   "mid": 4.7491
+  },
+  "_source": "Yahoo Finance 匯率（備援）",
+  "_time": "2026-09-29 21:38"
+ },
+ "rows": [
+  {
+   "date": "2026-09-29",
+   "timestamp": "2026-09-29 21:38:52",
+   "code": "FII",
+   "name": "工業富聯",
+   "ticker": "601138.SS",
+   "currency": "CNY",
+   "price_date": "2026-09-29",
+   "close": 58.42,
+   "prev_close": 58.92,
+   "chg_pct": -0.849,
+   "shares": 19844092284,
+   "shares_source": "yahoo",
+   "mcap_local": 1159291834896,
+   "fx": 4.7491,
+   "fx_source": "Yahoo Finance 匯率（備援）",
+   "mcap_twd": 5505592853103,
+   "prev_mcap_twd": 5552713642436,
+   "method": "close"
+  },
+  {
+   "date": "2026-09-29",
+   "timestamp": "2026-09-29 21:38:52",
+   "code": "FHH",
+   "name": "鴻海精密",
+   "ticker": "2317.TW",
+   "currency": "TWD",
+   "price_date": "2026-09-29",
+   "close": 250.5,
+   "prev_close": 250.5,
+   "chg_pct": 0.0,
+   "shares": 14011672693,
+   "shares_source": "yahoo",
+   "mcap_local": 3509924009596,
+   "fx": 1.0,
+   "fx_source": "—",
+   "mcap_twd": 3509924009596,
+   "prev_mcap_twd": 3509924009596,
+   "method": "close"
+  },
+  {
+   "date": "2026-09-29",
+   "timestamp": "2026-09-29 21:38:52",
+   "code": "FIT",
+   "name": "鴻騰精密",
+   "ticker": "6088.HK",
+   "currency": "HKD",
+   "price_date": "2026-09-29",
+   "close": 4.925,
+   "prev_close": 4.97,
+   "chg_pct": -0.905,
+   "shares": 7110873347,
+   "shares_source": "yahoo",
+   "mcap_local": 35021052590,
+   "fx": 4.0618,
+   "fx_source": "Yahoo Finance 匯率（備援）",
+   "mcap_twd": 142248511411,
+   "prev_mcap_twd": 143548232384,
+   "method": "close"
+  },
+  {
+   "date": "2026-09-29",
+   "timestamp": "2026-09-29 21:38:52",
+   "code": "FVT",
+   "name": "鴻華先進",
+   "ticker": "2258.TW",
+   "currency": "TWD",
+   "price_date": "2026-09-29",
+   "close": 30.95,
+   "prev_close": 30.5,
+   "chg_pct": 1.475,
+   "shares": 1744325100,
+   "shares_source": "yahoo",
+   "mcap_local": 53986863176,
+   "fx": 1.0,
+   "fx_source": "—",
+   "mcap_twd": 53986863176,
+   "prev_mcap_twd": 53201915550,
+   "method": "close"
+  },
+  {
+   "date": "2026-09-29",
+   "timestamp": "2026-09-29 21:38:52",
+   "code": "FIH",
+   "name": "富智康",
+   "ticker": "2038.HK",
+   "currency": "HKD",
+   "price_date": "2026-09-29",
+   "close": 14.58,
+   "prev_close": 14.41,
+   "chg_pct": 1.18,
+   "shares": 782836330,
+   "shares_source": "yahoo",
+   "mcap_local": 11413753632,
+   "fx": 4.0618,
+   "fx_source": "Yahoo Finance 匯率（備援）",
+   "mcap_twd": 46360384501,
+   "prev_mcap_twd": 45819831076,
+   "method": "close"
+  }
+ ],
+ "errors": {}
+}
