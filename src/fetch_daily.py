@@ -100,6 +100,8 @@ def backfill(days: int, cfg: dict) -> list[dict]:
             if not rate:
                 continue
             px, pv = last_px[c], prev_px.get(c)
+            if d not in closes[c]:
+                pv = px  # 該市場當天休市或缺資料：沿用前值，漲跌記 0
             loc = px * shares[c]
             rows.append({
                 "date": d, "timestamp": f"{d} 16:45:00", "code": c, "name": u["name"],
