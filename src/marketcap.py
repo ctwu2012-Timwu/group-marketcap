@@ -109,16 +109,22 @@ def fetch_quote(unit: dict) -> dict:
             shares = None
     if not shares:
         shares, shares_src = float(unit["fallback_shares"]), "config"
-    # 取最新一筆日K的日期，當作價格日期
+    # 以日K判定「前一交易日收盤」：Yahoo 的 previous_close 收盤後常等於當日收盤，不可靠
     price_date = None
     try:
-        h = t.history(period="5d", interval="1d", auto_adjust=False)
+        h = t.history(period="10d", interval="1d", auto_adjust=False)
+        h = h[h["Close"].notna()]
         if len(h):
             price_date = h.index[-1].strftime("%Y-%m-%d")
+            closes = [float(c) for c in h["Close"]]
             if last is None:
-                last = float(h["Close"].iloc[-1])
-            if prev is None and len(h) > 1:
-                prev = float(h["Close"].iloc[-2])
+                last = closes[-1]
+            if price_date == now_tpe().strftime("%Y-%m-%d"):
+                prev = closes[-2] if len(closes) > 1 else prev   # 今天有交易：前收 = 前一根日K
+            elif abs(last - closes[-1]) < 1e-9 and len(closes) > 1:
+                prev = closes[-2]                                # 今天休市：顯示最近一個交易日的漲跌
+            else:
+                prev = closes[-1]                                # 盤中尚未寫入日K：前收 = 最後一根日K
     except Exception:  # noqa: BLE001
         pass
     if last is None:
