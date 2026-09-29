@@ -136,15 +136,22 @@ def export_json(history: list[dict], snap: dict, cfg: dict) -> None:
     dates = sorted({r["date"] for r in history})
     idx = {d: i for i, d in enumerate(dates)}
     series = {u["code"]: [None] * len(dates) for u in units}
+    local = {u["code"]: [None] * len(dates) for u in units}   # 原幣市值
+    close = {u["code"]: [None] * len(dates) for u in units}   # 原幣股價
+    fxs = {u["code"]: [None] * len(dates) for u in units}     # 當日匯率
     method = ["backfill_est"] * len(dates)
     for r in history:
         if r["code"] in series:
-            series[r["code"]][idx[r["date"]]] = int(float(r["mcap_twd"]))
+            i = idx[r["date"]]
+            series[r["code"]][i] = int(float(r["mcap_twd"]))
+            local[r["code"]][i] = int(float(r["mcap_local"]))
+            close[r["code"]][i] = round(float(r["close"]), 4)
+            fxs[r["code"]][i] = round(float(r["fx"]), 4)
             if r.get("method") == "close":
                 method[idx[r["date"]]] = "close"
     (DOCS_DATA / "history.json").write_text(json.dumps({
         "generated": snap["timestamp"], "units": units, "dates": dates,
-        "mcap_twd": series, "method": method,
+        "mcap_twd": series, "mcap_local": local, "close": close, "fx": fxs, "method": method,
     }, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     (DOCS_DATA / "latest.json").write_text(json.dumps({
         "generated": snap["timestamp"], "mode": "close", "units": units,
