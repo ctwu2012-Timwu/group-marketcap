@@ -63,12 +63,19 @@ def fetch_bot_fx(currencies=("HKD", "CNY", "USD")) -> dict:
 def fetch_yahoo_fx(cfg: dict) -> dict:
     import yfinance as yf
     out = {}
-    for cur, tk in cfg["fx"]["fallback_yahoo"].items():
+    def last(tk):
         try:
-            px = float(yf.Ticker(tk).fast_info["last_price"])
+            v = float(yf.Ticker(tk).fast_info["last_price"])
+            return v if v > 0 else None
+        except Exception:  # noqa: BLE001
+            return None
+    for cur, tk in cfg["fx"]["fallback_yahoo"].items():
+        px = last(tk)
+        if px is None:  # 直接匯率抓不到時，用美元交叉匯率
+            a, b = last("TWD=X"), last(f"{cur}=X")
+            px = a / b if a and b else None
+        if px:
             out[cur] = {"buy": None, "sell": None, "mid": round(px, 4)}
-        except Exception:
-            pass
     out["_source"] = "Yahoo Finance 匯率（備援）"
     out["_time"] = now_tpe().strftime("%Y-%m-%d %H:%M")
     return out

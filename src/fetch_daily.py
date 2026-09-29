@@ -53,10 +53,25 @@ def backfill(days: int, cfg: dict) -> list[dict]:
     for u in cfg["units"]:
         h = yf.Ticker(u["ticker"]).history(start=start, interval="1d", auto_adjust=False)
         closes[u["code"]] = {i.strftime("%Y-%m-%d"): float(c) for i, c in h["Close"].items()}
+    def series(tk: str) -> dict:
+        try:
+            h = yf.Ticker(tk).history(start=start, interval="1d", auto_adjust=False)
+            h = h[h["Close"].notna()]
+            return {i.strftime("%Y-%m-%d"): float(c) for i, c in h["Close"].items() if float(c) > 0}
+        except Exception:  # noqa: BLE001
+            return {}
+
     fxs = {"TWD": None}
+    usd_twd = None
     for cur, tk in cfg["fx"]["fallback_yahoo"].items():
-        h = yf.Ticker(tk).history(start=start, interval="1d", auto_adjust=False)
-        fxs[cur] = {i.strftime("%Y-%m-%d"): float(c) for i, c in h["Close"].items()}
+        s = series(tk)
+        if len(s) < 20:
+            # 直接匯率資料不足（例如 CNYTWD=X），改用美元交叉匯率：TWD=X ÷ CNY=X
+            usd_twd = usd_twd or series("TWD=X")
+            usd_cur = series(f"{cur}=X")
+            s = {d: usd_twd[d] / usd_cur[d] for d in usd_twd if d in usd_cur}
+            print(f"[backfill] {cur} 直接匯率不足，改用美元交叉匯率：{len(s)} 天")
+        fxs[cur] = s
     shares = {}
     for u in cfg["units"]:
         try:
