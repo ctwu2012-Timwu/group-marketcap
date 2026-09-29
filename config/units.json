@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "base_currency": "TWD",
+  "units": [
+    {"code": "FII", "name": "工業富聯", "ticker": "601138.SS", "exchange": "SSE",  "currency": "CNY", "color": "#0A2463", "fallback_shares": 19860000000},
+    {"code": "FHH", "name": "鴻海精密", "ticker": "2317.TW",   "exchange": "TWSE", "currency": "TWD", "color": "#D7000F", "fallback_shares": 13992000000},
+    {"code": "FIT", "name": "鴻騰精密", "ticker": "6088.HK",   "exchange": "HKEX", "currency": "HKD", "color": "#0E8C8C", "fallback_shares": 7070000000},
+    {"code": "FVT", "name": "鴻華先進", "ticker": "2258.TW",   "exchange": "TWSE", "currency": "TWD", "color": "#E08A00", "fallback_shares": 1751076800},
+    {"code": "FIH", "name": "富智康",   "ticker": "2038.HK",   "exchange": "HKEX", "currency": "HKD", "color": "#6B5BD2", "fallback_shares": 783050000}
+  ],
+  "fx": {
+    "primary": "臺灣銀行牌告即期匯率（買入賣出中價）",
+    "fallback_yahoo": {"HKD": "HKDTWD=X", "CNY": "CNYTWD=X"}
+  }
+}
