@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.0.4 — 2026-09-29
+- 修正：FII 歷史回補缺漏（Yahoo 的 CNYTWD=X 無歷史資料，導致 FII 走勢只有 1 天、相對表現恆為 0%）；匯率資料不足時改用美元交叉匯率（TWD=X ÷ CNY=X）
+- 即時匯率備援同樣加入美元交叉匯率
+
 ## v1.0.3 — 2026-09-29
 - 即時模式：Tailscale 網址連不到時，自動改試本機 http://127.0.0.1:8765（在 Mac Studio 本機開網頁也能看到即時資料）
 - 已設定即時網址 https://timmac-studio.tailbb45a9.ts.net
