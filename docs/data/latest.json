@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-30 19:04:33",
+ "generated": "2026-09-30 23:17:45",
  "mode": "close",
  "units": [
   {
@@ -42,20 +42,20 @@
   "HKD": {
    "buy": null,
    "sell": null,
-   "mid": 4.0656
+   "mid": 4.0639
   },
   "CNY": {
    "buy": null,
    "sell": null,
-   "mid": 4.7544
+   "mid": 4.7515
   },
   "_source": "Yahoo Finance 匯率（備援）",
-  "_time": "2026-09-30 19:04"
+  "_time": "2026-09-30 23:17"
  },
  "rows": [
   {
    "date": "2026-09-30",
-   "timestamp": "2026-09-30 19:04:33",
+   "timestamp": "2026-09-30 23:17:45",
    "code": "FII",
    "name": "工業富聯",
    "ticker": "601138.SS",
@@ -67,15 +67,15 @@
    "shares": 19844092284,
    "shares_source": "yahoo",
    "mcap_local": 1154926186069,
-   "fx": 4.7544,
+   "fx": 4.7515,
    "fx_source": "Yahoo Finance 匯率（備援）",
-   "mcap_twd": 5490981059045,
-   "prev_mcap_twd": 5511737099828,
+   "mcap_twd": 5487631773105,
+   "prev_mcap_twd": 5508375153507,
    "method": "close"
   },
   {
    "date": "2026-09-30",
-   "timestamp": "2026-09-30 19:04:33",
+   "timestamp": "2026-09-30 23:17:45",
    "code": "FHH",
    "name": "鴻海精密",
    "ticker": "2317.TW",
@@ -95,7 +95,7 @@
   },
   {
    "date": "2026-09-30",
-   "timestamp": "2026-09-30 19:04:33",
+   "timestamp": "2026-09-30 23:17:45",
    "code": "FIT",
    "name": "鴻騰精密",
    "ticker": "6088.HK",
@@ -107,15 +107,15 @@
    "shares": 7110873347,
    "shares_source": "yahoo",
    "mcap_local": 35163269922,
-   "fx": 4.0656,
+   "fx": 4.0639,
    "fx_source": "Yahoo Finance 匯率（備援）",
-   "mcap_twd": 142959790193,
-   "prev_mcap_twd": 142381591411,
+   "mcap_twd": 142900012634,
+   "prev_mcap_twd": 142322055622,
    "method": "close"
   },
   {
    "date": "2026-09-30",
-   "timestamp": "2026-09-30 19:04:33",
+   "timestamp": "2026-09-30 23:17:45",
    "code": "FVT",
    "name": "鴻華先進",
    "ticker": "2258.TW",
@@ -135,7 +135,7 @@
   },
   {
    "date": "2026-09-30",
-   "timestamp": "2026-09-30 19:04:33",
+   "timestamp": "2026-09-30 23:17:45",
    "code": "FIH",
    "name": "富智康",
    "ticker": "2038.HK",
@@ -147,10 +147,10 @@
    "shares": 782726330,
    "shares_source": "yahoo",
    "mcap_local": 11255604715,
-   "fx": 4.0656,
+   "fx": 4.0639,
    "fx_source": "Yahoo Finance 匯率（備援）",
-   "mcap_twd": 45760786529,
-   "prev_mcap_twd": 46397236356,
+   "mcap_twd": 45741652001,
+   "prev_mcap_twd": 46377835701,
    "method": "close"
   }
  ],
