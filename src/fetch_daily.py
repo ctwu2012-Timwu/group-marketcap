@@ -92,10 +92,12 @@ def backfill(days: int, cfg: dict) -> list[dict]:
                 if c in last_px:
                     prev_px[c] = last_px[c]
                 last_px[c] = closes[c][d]
-        if len(last_px) < len(cfg["units"]):
+        if not last_px:
             continue
         for u in cfg["units"]:
             c, cur = u["code"], u["currency"]
+            if c not in last_px:  # 尚未上市或 Yahoo 尚無資料：該單位當天略過
+                continue
             rate = 1.0 if cur == "TWD" else last_fx.get(cur)
             if not rate:
                 continue
