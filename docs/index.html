@@ -84,9 +84,16 @@ section.summary .wrap{padding:24px 40px 0;display:flex;align-items:flex-end;gap:
 .tip-r{display:grid;grid-template-columns:10px 36px auto;column-gap:6px;align-items:center;line-height:1.5}
 .tip-r i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .tip-r .tip-l{grid-column:3;color:#B9C6E4;font-size:11px}
-.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;font-weight:700}
-.legend span{display:flex;align-items:center;gap:6px}
-.legend i{display:inline-block;width:14px;height:3px;border-radius:2px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;font-weight:700}
+.uchip{display:flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.uchip[aria-pressed="false"]{opacity:.45;background:var(--bg)}
+.uchip[aria-pressed="false"] b,.uchip[aria-pressed="false"] .n{text-decoration:line-through}
+.uchip i{display:inline-block;width:14px;height:3px;border-radius:2px}
+.uchip .n{font-weight:500}
+.custom-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.custom-row[hidden]{display:none}
+.custom-row input{height:36px;padding:0 8px;border:1px solid var(--line);border-radius:6px;font:inherit;color:var(--ink)}
+.custom-row .hint{font-size:12px}
 .bar-row{display:flex;flex-direction:column;gap:6px}
 .bar-row .l{display:flex;align-items:baseline;gap:8px}
 .bar-row .rk{font-size:12px;color:var(--muted);width:18px}
@@ -178,10 +185,18 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
         <button type="button" data-range="30" aria-pressed="false">30 天</button>
         <button type="button" data-range="90" aria-pressed="true">90 天</button>
         <button type="button" data-range="365" aria-pressed="false">1 年</button>
+        <button type="button" data-range="1095" aria-pressed="false">3 年</button>
+        <button type="button" data-range="custom" aria-pressed="false">自訂</button>
       </div>
     </div>
+    <div id="customRow" class="custom-row" hidden>
+      <label>起 <input type="date" id="dFrom"></label>
+      <span aria-hidden="true">—</span>
+      <label>迄 <input type="date" id="dTo"></label>
+      <span id="rangeHint" class="hint"></span>
+    </div>
+    <div id="legend" class="legend" role="group" aria-label="顯示單位（點選可隱藏／顯示）"></div>
     <div id="chart"></div>
-    <div id="legend" class="legend"></div>
   </div>
   <div class="panel p-rank">
     <h2>市值排行 <span>（億新台幣）</span></h2>
@@ -211,7 +226,7 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
   <span>每個交易日 16:45 由 GitHub Actions 存檔 · 盤中即時資料經 Tailscale 由 Mac Studio 提供</span>
   <span id="bfNote"></span>
   <span style="flex:1"></span>
-  <span id="ver">v1.2.0</span>
+  <span id="ver">v1.3.0</span>
 </div></footer>
 
 <script>
@@ -221,7 +236,7 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const PFX = { TWD: "NT$", HKD: "HK$", CNY: "¥", USD: "US$" };
-  const state = { cfg: {}, history: null, latest: null, live: null, range: 90, view: "rel", liveTimer: null };
+  const state = { cfg: {}, history: null, latest: null, live: null, range: 90, from: null, to: null, hidden: new Set(), view: "rel", liveTimer: null };
 
   // ---------- 格式化
   const yi = (v) => Math.round(v / 1e8).toLocaleString("zh-TW");
@@ -379,16 +394,16 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
   const fmtLocal = (cur, v) => (PFX[cur] || "") + fmtYi(v).replace(" ", "");
   function chartData() {
     const h = state.history;
-    const lastDate = new Date(h.dates[h.dates.length - 1] + "T00:00:00+08:00");
-    const from = new Date(lastDate.getTime() - state.range * 86400e3);
-    let idx = h.dates.map((d, i) => [d, i]).filter(([d]) => new Date(d + "T00:00:00+08:00") >= from).map(([, i]) => i);
-    if (idx.length < 2) idx = h.dates.map((_, i) => i);
-    if (state.live && sameDay() && idx.length > 2) idx = idx.slice(0, -1);
+    const { from, to } = rangeBounds();
+    let idx = h.dates.map((d, i) => [d, i]).filter(([d]) => d >= from && d <= to).map(([, i]) => i);
+    if (idx.length < 2) idx = h.dates.map((_, i) => i).slice(-2);
+    const lastInRange = to >= h.dates[h.dates.length - 1];
+    if (state.live && sameDay() && lastInRange && idx.length > 2) idx = idx.slice(0, -1);
     const dates = idx.map((i) => h.dates[i]);
-    const liveOn = !!state.live;
+    const liveOn = !!state.live && lastInRange;
     if (liveOn) dates.push(state.live.generated.slice(0, 10) + " 即時");
     const pick = (k, code, i) => (h[k] && h[k][code] ? h[k][code][i] : null);
-    const series = h.units.map((u) => {
+    const series = h.units.filter((u) => !state.hidden.has(u.code)).map((u) => {
       let pts = idx.map((i) => ({ twd: pick("mcap_twd", u.code, i), local: pick("mcap_local", u.code, i), px: pick("close", u.code, i), fx: pick("fx", u.code, i) }));
       if (liveOn) {
         const r = state.live.rows.find((x) => x.code === u.code);
@@ -396,12 +411,34 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
       }
       return { u, pts };
     });
-    return { dates, series, liveOn };
+    return { dates, series, liveOn, spanDays: (new Date(dates[dates.length - 1].slice(0, 10)) - new Date(dates[0])) / 86400e3 };
+  }
+  function rangeBounds() {
+    const h = state.history, first = h.dates[0], last = h.dates[h.dates.length - 1];
+    if (state.range === "custom" && state.from && state.to) return { from: state.from, to: state.to };
+    const d = new Date(last + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() - Number(state.range === "custom" ? 90 : state.range));
+    const f = d.toISOString().slice(0, 10);
+    return { from: f < first ? first : f, to: last };
+  }
+  // 單位切換鈕：點選隱藏／顯示（至少保留一家）
+  function renderUnitChips(valueOf) {
+    const h = state.history;
+    $("legend").innerHTML = h.units.map((u) => {
+      const on = !state.hidden.has(u.code), v = on && valueOf ? valueOf(u.code) : "";
+      return `<button type="button" class="uchip" data-code="${esc(u.code)}" aria-pressed="${on}" title="${on ? "點選隱藏" : "點選顯示"}" style="color:${u.color}"><i style="background:${u.color}"></i><b>${esc(u.code)}</b><span class="n">${esc(u.name)}</span>${v ? `<span class="num" style="font-weight:600">${v}</span>` : ""}</button>`;
+    }).join("");
+    $("legend").querySelectorAll(".uchip").forEach((b) => b.addEventListener("click", () => {
+      const c = b.dataset.code;
+      if (state.hidden.has(c)) state.hidden.delete(c);
+      else if (state.hidden.size < h.units.length - 1) state.hidden.add(c);
+      renderChart();
+    }));
   }
   // ---------- 趨勢：相對表現 / 個別市值
   const fmtShort = (v) => { const y = v / 1e8; return y >= 10000 ? (y / 10000).toFixed(y >= 100000 ? 1 : 2) + "兆" : Math.round(y).toLocaleString("zh-TW") + "億"; };
   const pctTxt = (v, d = 1) => (v > 0 ? "▲" : v < 0 ? "▼" : "") + Math.abs(v).toFixed(d) + "%";
-  const dLabel = (d) => d.replace(" 即時", "").slice(5, 10).replace("-", "/");
+  let LONG = false;
+  const dLabel = (d) => { const x = d.replace(" 即時", ""); return LONG ? x.slice(2, 7).replace("-", "/") : x.slice(5, 10).replace("-", "/"); };
   function placeTip(tip, box, xPx) {
     tip.style.display = "block";
     const bw = box.clientWidth, tw = tip.offsetWidth;
@@ -433,12 +470,12 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
     });
     const all = S.flatMap((s) => s.pts.map((p) => p.pct).filter((v) => v != null));
     let lo = Math.min(0, ...all), hi = Math.max(0, ...all);
-    const step = niceStep(hi - lo || 1, 5);
-    lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+    const step = niceStep(hi - lo || 1, 5), padv = (hi - lo || 1) * 0.05;
+    lo -= padv; hi += padv;
     const x = (i) => L + (n <= 1 ? 0 : i / (n - 1) * (W - L - R));
     const y = (v) => T + (hi - v) / (hi - lo || 1) * (H - T - B);
     let g = "";
-    for (let v = lo; v <= hi + 1e-9; v += step) {
+    for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) {
       g += `<line x1="${L}" y1="${y(v)}" x2="${W - R}" y2="${y(v)}" stroke="${Math.abs(v) < 1e-9 ? "#C9D2E3" : "#EEF1F6"}"/>`;
       g += `<text x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v > 0 ? "+" : v < 0 ? "−" : ""}${+Math.abs(v).toFixed(1)}%</text>`;
     }
@@ -455,12 +492,12 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
     for (let i = 1; i < labels.length; i++) if (labels[i].ty - labels[i - 1].ty < 14) labels[i].ty = labels[i - 1].ty + 14;
     const lab = labels.map((l) => `<circle cx="${l.xx}" cy="${l.yy}" r="4" fill="${l.u.color}"/><text x="${l.xx + 8}" y="${l.ty + 4}" fill="${l.u.color}" font-weight="700" font-family="Noto Sans TC,sans-serif">${esc(l.u.code)}</text>`).join("");
     const liveMark = liveOn ? `<line x1="${x(n - 1)}" y1="${T}" x2="${x(n - 1)}" y2="${H - B}" stroke="#34D07F" stroke-dasharray="3 3"/><text x="${x(n - 1) - 4}" y="${T - 8}" text-anchor="end" fill="#1F8A5B" font-size="11" font-family="Noto Sans TC,sans-serif">今日即時點</text>` : "";
-    box.innerHTML = `<div style="position:relative"><svg id="relSvg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${state.range} 天相對表現" style="display:block;touch-action:pan-y"><g font-family="IBM Plex Mono,monospace" font-size="11" fill="#5A6782">${g}</g>${liveMark}${lines}<g id="relHover"></g><g font-size="12">${lab}</g><rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/></svg><div id="relTip" class="tip" role="tooltip"></div></div>`;
-    $("legend").innerHTML = S.map(({ u, pts }) => {
-      const q = [...pts].reverse().find((p) => p.pct != null) || {};
-      return `<span style="color:${u.color}"><i style="background:${u.color}"></i>${esc(u.code)} ${esc(u.name)} <span class="num" style="font-weight:600">${q.pct == null ? "" : (q.pct >= 0 ? "+" : "−") + Math.abs(q.pct).toFixed(1) + "%"}</span></span>`;
-    }).join("");
-    $("legend").style.display = "";
+    box.innerHTML = `<div style="position:relative"><svg id="relSvg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="相對表現走勢" style="display:block;touch-action:pan-y"><g font-family="IBM Plex Mono,monospace" font-size="11" fill="#5A6782">${g}</g>${liveMark}${lines}<g id="relHover"></g><g font-size="12">${lab}</g><rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/></svg><div id="relTip" class="tip" role="tooltip"></div></div>`;
+    renderUnitChips((code) => {
+      const o = S.find((x) => x.u.code === code); if (!o) return "";
+      const q = [...o.pts].reverse().find((p) => p.pct != null) || {};
+      return q.pct == null ? "" : (q.pct >= 0 ? "+" : "−") + Math.abs(q.pct).toFixed(1) + "%";
+    });
     const svg = $("relSvg"), hov = $("relHover"), tip = $("relTip");
     bindHover(svg, n, W, L, R, (i) => {
       const items = S.map(({ u, pts }) => ({ u, q: pts[i] || {} })).filter((o) => o.q.pct != null).sort((a, b) => b.q.pct - a.q.pct);
@@ -483,7 +520,7 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
         chgT: first.twd ? (last.twd / first.twd - 1) * 100 : null,
         chgL: first.local && last.local ? (last.local / first.local - 1) * 100 : null };
     }).sort((a, b) => (b.last.twd || 0) - (a.last.twd || 0));
-    box.innerHTML = `<div class="minis">${S.map(({ u, last, chgT, chgL }) => `
+    box.innerHTML = `<div class="minis" style="grid-template-columns:repeat(${Math.min(S.length, window.innerWidth < 640 ? 1 : window.innerWidth < 1100 ? 2 : 5)},minmax(0,1fr))">${S.map(({ u, last, chgT, chgL }) => `
       <div class="mini">
         <div class="mh"><span class="tag" style="background:${u.color}">${esc(u.code)}</span><span style="font-size:13px;font-weight:500">${esc(u.name)}</span></div>
         <div class="num mv">${last.twd ? fmtYi(last.twd) : "—"}</div>
@@ -491,7 +528,7 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
         <div class="num mc"><span>區間 台幣 <b style="color:${chgColor(chgT)}">${chgT == null ? "—" : pctTxt(chgT)}</b></span>${u.currency !== "TWD" && chgL != null ? `<span>原幣 <b style="color:${chgColor(chgL)}">${pctTxt(chgL)}</b></span>` : ""}</div>
         <div class="chart" data-code="${esc(u.code)}"></div>
       </div>`).join("")}</div>`;
-    $("legend").innerHTML = ""; $("legend").style.display = "none";
+    renderUnitChips(null);
     S.forEach(({ u, pts }) => {
       const el = box.querySelector(`.chart[data-code="${u.code}"]`); if (!el) return;
       const W = el.clientWidth || 240, H = 170, L = 50, R = 10, T = 18, B = 24;
@@ -509,7 +546,7 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
       const iMax = pts.findIndex((q) => q.twd === mx), iMin = pts.findIndex((q) => q.twd === mn);
       const mark = (i, v, up, t) => `<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="#fff" stroke="${u.color}" stroke-width="2"/><text x="${Math.min(Math.max(x(i), L + 18), W - R - 18)}" y="${y(v) + (up ? -7 : 14)}" text-anchor="middle" font-size="10" fill="#3A4660">${t} ${fmtShort(v)}</text>`;
       const liveMark = liveOn ? `<line x1="${x(n - 1)}" y1="${T}" x2="${x(n - 1)}" y2="${H - B}" stroke="#34D07F" stroke-dasharray="3 3"/>` : "";
-      el.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(u.code)} ${state.range} 天新台幣市值" style="display:block;touch-action:pan-y"><g font-family="IBM Plex Mono,monospace" font-size="10" fill="#5A6782">${g}</g>${liveMark}<path d="${area}" fill="${u.color}" opacity=".08"/><polyline fill="none" stroke="${u.color}" stroke-width="2" stroke-linejoin="round" points="${line.join(" ")}"/>${mark(iMax, mx, true, "高")}${mark(iMin, mn, false, "低")}<circle cx="${x(lastI)}" cy="${y(pts[lastI].twd)}" r="3.5" fill="${u.color}"/><g class="hv"></g><rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/></svg><div class="tip" role="tooltip"></div>`;
+      el.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(u.code)} 新台幣市值走勢" style="display:block;touch-action:pan-y"><g font-family="IBM Plex Mono,monospace" font-size="10" fill="#5A6782">${g}</g>${liveMark}<path d="${area}" fill="${u.color}" opacity=".08"/><polyline fill="none" stroke="${u.color}" stroke-width="2" stroke-linejoin="round" points="${line.join(" ")}"/>${mark(iMax, mx, true, "高")}${mark(iMin, mn, false, "低")}<circle cx="${x(lastI)}" cy="${y(pts[lastI].twd)}" r="3.5" fill="${u.color}"/><g class="hv"></g><rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/></svg><div class="tip" role="tooltip"></div>`;
       const svg = el.querySelector("svg"), hv = el.querySelector(".hv"), tip = el.querySelector(".tip");
       tip.style.minWidth = "170px";
       bindHover(svg, n, W, L, R, (i) => {
@@ -525,6 +562,10 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
   function renderChart() {
     const h = state.history; if (!h || !h.dates.length) return;
     const cd = chartData();
+    LONG = cd.spanDays > 400;
+    const rb = rangeBounds(); $("rangeHint").textContent = `可選 ${h.dates[0].replace(/-/g, "/")} 至 ${h.dates[h.dates.length - 1].replace(/-/g, "/")}`;
+    $("dFrom").min = $("dTo").min = h.dates[0]; $("dFrom").max = $("dTo").max = h.dates[h.dates.length - 1];
+    if (!$("dFrom").value) $("dFrom").value = rb.from; if (!$("dTo").value) $("dTo").value = rb.to;
     $("trendTitle").innerHTML = state.view === "rel"
       ? `相對表現 <span>（期初 = 0%；指向或點選節點看新台幣與原幣市值）</span>`
       : `個別市值 <span>（新台幣；每張圖各自刻度，指向或點選節點看原幣）</span>`;
@@ -554,9 +595,19 @@ footer.foot .wrap{padding:16px 40px 28px;display:flex;flex-wrap:wrap;gap:8px 24p
     b.classList.remove("spin"); b.disabled = false;
   }
   document.querySelectorAll("#rangeSeg button").forEach((btn) => btn.addEventListener("click", () => {
-    state.range = Number(btn.dataset.range);
+    const r = btn.dataset.range;
     document.querySelectorAll("#rangeSeg button").forEach((x) => x.setAttribute("aria-pressed", String(x === btn)));
+    if (r === "custom") {
+      const rb = state.history ? rangeBounds() : null;
+      if (rb) { $("dFrom").value = rb.from; $("dTo").value = rb.to; state.from = rb.from; state.to = rb.to; }
+      state.range = "custom"; $("customRow").hidden = false;
+    } else { state.range = Number(r); $("customRow").hidden = true; $("dFrom").value = ""; $("dTo").value = ""; }
     renderChart();
+  }));
+  ["dFrom", "dTo"].forEach((id) => $(id).addEventListener("change", () => {
+    let f = $("dFrom").value, t = $("dTo").value; if (!f || !t) return;
+    if (f > t) { [f, t] = [t, f]; $("dFrom").value = f; $("dTo").value = t; }
+    state.from = f; state.to = t; state.range = "custom"; renderChart();
   }));
   document.querySelectorAll("#viewSeg button").forEach((btn) => btn.addEventListener("click", () => {
     state.view = btn.dataset.view;
