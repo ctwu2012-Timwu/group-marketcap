@@ -1,10 +1,14 @@
-# 集團市值 Dashboard v1.0.0
+# 集團市值 Dashboard v1.3.1
 # 每個交易日 16:45（台北）抓收盤市值 → commit 回 repo → 部署 GitHub Pages
 name: daily-marketcap
 
 on:
   schedule:
-    - cron: "45 8 * * 1-5"   # UTC 08:45 = 台北 16:45，週一至週五
+    # GitHub 排程可能延遲數小時或漏跑：設多個備援時間，當天已有收盤資料就自動略過
+    - cron: "45 8 * * 1-5"   # 台北 16:45（主要）
+    - cron: "17 9 * * 1-5"   # 台北 17:17（備援）
+    - cron: "7 11 * * 1-5"   # 台北 19:07（備援）
+    - cron: "37 13 * * 1-5"  # 台北 21:37（備援）
   workflow_dispatch:
     inputs:
       backfill_days:
@@ -38,7 +42,11 @@ jobs:
         run: |
           BF="${{ github.event.inputs.backfill_days || '0' }}"
           if [ ! -f data/history.csv ]; then BF=365; fi
-          if [ "${{ github.event_name }}" = "push" ] && [ -f data/history.csv ]; then echo "run=no" >> $GITHUB_OUTPUT; else echo "run=yes" >> $GITHUB_OUTPUT; fi
+          RUN=yes
+          if [ "${{ github.event_name }}" = "push" ] && [ -f data/history.csv ]; then RUN=no; fi
+          # 排程備援：今天 16:30 後已存過收盤資料就略過
+          if [ "${{ github.event_name }}" = "schedule" ] && python3 -c "import json,sys,datetime as d;g=json.load(open('docs/data/latest.json'))['generated'];t=d.datetime.now(d.timezone(d.timedelta(hours=8))).strftime('%Y-%m-%d');sys.exit(0 if g[:10]==t and g[11:16]>='16:30' else 1)" 2>/dev/null; then RUN=no; echo "今天已有收盤資料，略過"; fi
+          echo "run=${RUN}" >> $GITHUB_OUTPUT
           echo "bf=$BF" >> $GITHUB_OUTPUT
       - name: 抓取市值
         if: steps.plan.outputs.run == 'yes'
