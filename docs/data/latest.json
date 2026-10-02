@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-02 20:57:14",
+ "generated": "2026-10-03 02:40:41",
  "mode": "close",
  "units": [
   {
@@ -42,20 +42,20 @@
   "HKD": {
    "buy": null,
    "sell": null,
-   "mid": 4.0604
+   "mid": 4.0625
   },
   "CNY": {
    "buy": null,
    "sell": null,
-   "mid": 4.7464
+   "mid": 4.7546
   },
   "_source": "Yahoo Finance 匯率（備援）",
-  "_time": "2026-10-02 20:57"
+  "_time": "2026-10-03 02:40"
  },
  "rows": [
   {
-   "date": "2026-10-02",
-   "timestamp": "2026-10-02 20:57:14",
+   "date": "2026-10-03",
+   "timestamp": "2026-10-03 02:40:41",
    "code": "FII",
    "name": "工業富聯",
    "ticker": "601138.SS",
@@ -67,15 +67,15 @@
    "shares": 19844092284,
    "shares_source": "yahoo",
    "mcap_local": 1154926186069,
-   "fx": 4.7464,
+   "fx": 4.7546,
    "fx_source": "Yahoo Finance 匯率（備援）",
-   "mcap_twd": 5481741649556,
-   "prev_mcap_twd": 5502462765149,
+   "mcap_twd": 5491212044282,
+   "prev_mcap_twd": 5511968958195,
    "method": "close"
   },
   {
-   "date": "2026-10-02",
-   "timestamp": "2026-10-02 20:57:14",
+   "date": "2026-10-03",
+   "timestamp": "2026-10-03 02:40:41",
    "code": "FHH",
    "name": "鴻海精密",
    "ticker": "2317.TW",
@@ -94,8 +94,8 @@
    "method": "close"
   },
   {
-   "date": "2026-10-02",
-   "timestamp": "2026-10-02 20:57:14",
+   "date": "2026-10-03",
+   "timestamp": "2026-10-03 02:40:41",
    "code": "FIT",
    "name": "鴻騰精密",
    "ticker": "6088.HK",
@@ -107,15 +107,15 @@
    "shares": 7116351572,
    "shares_source": "yahoo",
    "mcap_local": 34478721873,
-   "fx": 4.0604,
+   "fx": 4.0625,
    "fx_source": "Yahoo Finance 匯率（備援）",
-   "mcap_twd": 139997402294,
-   "prev_mcap_twd": 142886936709,
+   "mcap_twd": 140069807610,
+   "prev_mcap_twd": 142960836465,
    "method": "close"
   },
   {
-   "date": "2026-10-02",
-   "timestamp": "2026-10-02 20:57:14",
+   "date": "2026-10-03",
+   "timestamp": "2026-10-03 02:40:41",
    "code": "FVT",
    "name": "鴻華先進",
    "ticker": "2258.TW",
@@ -134,8 +134,8 @@
    "method": "close"
   },
   {
-   "date": "2026-10-02",
-   "timestamp": "2026-10-02 20:57:14",
+   "date": "2026-10-03",
+   "timestamp": "2026-10-03 02:40:41",
    "code": "FIH",
    "name": "富智康",
    "ticker": "2038.HK",
@@ -147,10 +147,10 @@
    "shares": 782656330,
    "shares_source": "yahoo",
    "mcap_local": 11661579018,
-   "fx": 4.0604,
+   "fx": 4.0625,
    "fx_source": "Yahoo Finance 匯率（備援）",
-   "mcap_twd": 47350675446,
-   "prev_mcap_twd": 45698170186,
+   "mcap_twd": 47375164762,
+   "prev_mcap_twd": 45721804842,
    "method": "close"
   }
  ],
