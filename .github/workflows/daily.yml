@@ -1,4 +1,4 @@
-# 集團市值 Dashboard v1.3.1
+# 集團市值 Dashboard v1.3.3
 # 每個交易日 16:45（台北）抓收盤市值 → commit 回 repo → 部署 GitHub Pages
 name: daily-marketcap
 
@@ -44,6 +44,9 @@ jobs:
           if [ ! -f data/history.csv ]; then BF=365; fi
           RUN=yes
           if [ "${{ github.event_name }}" = "push" ] && [ -f data/history.csv ]; then RUN=no; fi
+          # 排程備援只在台北時間週一至週五 16:30–23:59 生效（GitHub 排程延遲到隔天凌晨或週末就略過）
+          NOW_D="$(TZ=Asia/Taipei date +%u)"; NOW_T="$(TZ=Asia/Taipei date +%H%M)"
+          if [ "${{ github.event_name }}" = "schedule" ] && { [ "${NOW_D}" -gt 5 ] || [ "${NOW_T}" -lt 1630 ]; }; then RUN=no; echo "排程延遲到 $(TZ=Asia/Taipei date '+%m/%d %H:%M')，不在收盤後時段，略過"; fi
           # 排程備援：今天 16:30 後已存過收盤資料就略過
           if [ "${{ github.event_name }}" = "schedule" ] && python3 -c "import json,sys,datetime as d;g=json.load(open('docs/data/latest.json'))['generated'];t=d.datetime.now(d.timezone(d.timedelta(hours=8))).strftime('%Y-%m-%d');sys.exit(0 if g[:10]==t and g[11:16]>='16:30' else 1)" 2>/dev/null; then RUN=no; echo "今天已有收盤資料，略過"; fi
           echo "run=${RUN}" >> $GITHUB_OUTPUT
